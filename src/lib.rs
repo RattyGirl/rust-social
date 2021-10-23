@@ -8,12 +8,17 @@ enum Message {
     Terminate
 }
 
+type Job = Box<dyn FnOnce() + Send + 'static>;
+
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: mpsc::Sender<Message>,
 }
 
-type Job = Box<dyn FnOnce() + Send + 'static>;
+struct Worker {
+    id: usize,
+    thread: Option<thread::JoinHandle<()>>,
+}
 
 impl ThreadPool {
     pub fn new(size: usize) -> ThreadPool {
@@ -65,12 +70,6 @@ impl Drop for ThreadPool {
     }
 }
 
-
-struct Worker {
-    id: usize,
-    thread: Option<thread::JoinHandle<()>>,
-}
-
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Message>>>) -> Worker {
         let thread = thread::spawn(move || loop {
@@ -95,6 +94,4 @@ impl Worker {
             thread: Some(thread),
         }
     }
-
-
 }
