@@ -1,6 +1,8 @@
 use std::fmt;
 use std::collections::HashMap;
 
+///
+/// test
 pub struct Request {
     pub req_type: TYPE,
     pub uri: String,
@@ -9,6 +11,7 @@ pub struct Request {
     pub body: String
 }
 
+#[derive(PartialEq)]
 pub enum TYPE {
     GET,
     POST

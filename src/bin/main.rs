@@ -5,12 +5,12 @@ use std::net::TcpStream;
 use rust_social::ThreadPool;
 use rusqlite::{Connection};
 
-mod router;
-mod user;
-mod httprequest;
+pub mod router;
+pub mod user;
+pub mod httprequest;
 
 fn main() {
-    let conn = Connection::open("rust-social.db").unwrap_or(Connection::open_in_memory().unwrap());
+    let conn = Connection::open("rust-social.db").unwrap();
 
     generate_tables(&conn);
 
@@ -31,7 +31,6 @@ fn main() {
 fn generate_tables(conn: &Connection) {
     conn.execute("drop table users", []);
     conn.execute("create table users (
-                id integer primary key,
                 username text not null unique,
                 hashedpw text not null
          )", [],
@@ -47,7 +46,7 @@ fn handle_connection(mut stream: TcpStream) {
     let (status_line, body) =
         match request_obj.uri.as_str() {
             "/login" => user::login(request_obj, buffer),
-            "/login" => user::register(request_obj, buffer),
+            "/register" => user::register(request_obj, buffer),
             _ => ("HTTP/1.1 404 NOT FOUND".to_string(), fs::read_to_string("404.html").unwrap_or("404".to_string()))
         };
 
