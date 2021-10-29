@@ -23,7 +23,7 @@ pub fn login(request: httprequest::Request, buffer: [u8; 1024]) -> (String, Stri
                     // TODO actually properly do authentication stuff
 
                     let row: Result<User, Error> = conn.query_row("SELECT * FROM users WHERE username= ?1",
-                                                                  params![v["username"].as_str()], |row| {
+                              params![v["username"].as_str()], |row| {
                         Ok(User {
                             username: row.get(0)?,
                             hashedpw: row.get(1)?
@@ -32,17 +32,21 @@ pub fn login(request: httprequest::Request, buffer: [u8; 1024]) -> (String, Stri
                     // todo check for auth
                     match row {
                         Ok(r) => {
-                            return (
-                                "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
-                                    to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap()).as_str(),
-                                "Hello ".to_string() + v["username"].as_str().unwrap()
-                            );
+                            let hashedpw = to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap());
+                            return if check_user_password(v["username"].as_str().unwrap(), hashedpw.as_str(), &r) {
+                                (
+                                    "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
+                                        hashedpw.as_str(),
+                                    "Hello ".to_string() + v["username"].as_str().unwrap()
+                                )
+                            } else {
+                                ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), "Invalid username or password".to_string())
+                            }
                         }
                         Err(e) => {
                             return ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), e.to_string());
                         }
                     }
-                    return ("HTTP/1.1 200 OK\r\n".to_string(), format!("Username - {}\nPassword - {}", row.username, row.hashedpw));
                 }
             },
             Err(e) =>
@@ -64,14 +68,17 @@ pub fn register(request: httprequest::Request, buffer: [u8; 1024]) -> (String, S
                 } else {
                     let conn = Connection::open("rust-social.db").unwrap();
                     // TODO actually properly do authentication stuff
+
+                    let hashedpw = to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap());
+
                     match conn.execute(
                         "INSERT INTO users (username, hashedpw) VALUES (?1, ?2)",
-                        params![v["username"].as_str(), v["password"].as_str()]
+                        params![v["username"].as_str(), hashedpw]
                     ) {
                         Ok(_) => {
                             return (
                                 "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
-                                    to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap()).as_str(),
+                                    hashedpw.as_str(),
                                 "Hello ".to_string() + v["username"].as_str().unwrap()
                             );
                         }
@@ -87,6 +94,16 @@ pub fn register(request: httprequest::Request, buffer: [u8; 1024]) -> (String, S
     } else {
         return ("HTTP/1.1 404 NOT FOUND\r\n".to_string(), "pretend there a register page here".to_string());
     }
+}
+
+fn check_user_password(username: &str, password: &str, user: &User) -> bool {
+    if user.username.eq(username) {
+    //     check password
+        if user.hashedpw.eq(password) {
+            return true;
+        }
+    }
+    return false
 }
 
 fn to_hash(username: &str, password: &str) -> String {
