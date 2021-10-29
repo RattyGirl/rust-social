@@ -8,6 +8,7 @@ use rusqlite::{Connection};
 pub mod router;
 pub mod user;
 pub mod httprequest;
+pub mod admin;
 
 fn main() {
     let conn = Connection::open("rust-social.db").unwrap();
@@ -29,18 +30,40 @@ fn main() {
 }
 
 fn generate_tables(conn: &Connection) {
-    match conn.execute("drop table users", []) {
-        Ok(_) => println!("Dropped Table"),
-        Err(e) => println!("Tried to drop table - {}", e.to_string()),
-    }
-    match conn.execute("create table users (
+
+    conn.execute("drop table users_roles", []);
+    conn.execute("drop table roles", []);
+    conn.execute("drop table users", []);
+
+
+    conn.execute("create table users (
                 username text not null unique,
                 hashedpw text not null
          )", [],
-    ) {
-        Ok(_) => println!("Created User Table"),
-        Err(e) => println!("Tried to create User Table - {}", e.to_string()),
-    }
+    );
+
+    conn.execute("drop table roles", []);
+    conn.execute("create table roles (
+                id integer primary key AUTOINCREMENT,
+                name text not null
+         )", [],
+    );
+
+    conn.execute("create table users_roles (
+        username text not null references users(username),
+        role_id int not null references roles(id),
+        PRIMARY KEY (username, role_id)
+    )", []);
+
+    conn.execute("insert into roles (name) VALUES ('admin');", []);
+    conn.execute("insert into roles (name) VALUES ('moderator');", []);
+    conn.execute("insert into roles (name) VALUES ('user');", []);
+    conn.execute("insert into roles (name) VALUES ('banned');", []);
+
+    conn.execute("insert into users (username, hashedpw) VALUES ('rat', 'd98d547fbcb9546985057ad654ef1ea81ae1a950c2adbcbd4a9216e13300080e40e2d316eb80d97446be5f20f01f9bc7f214d8e6797a21ebba950295b34cb5d5');", []);
+
+    conn.execute("insert into users_roles (username, role_id) VALUES ('rat',1)", []);
+    conn.execute("insert into users_roles (username, role_id) VALUES ('rat',4)", []);
 }
 
 fn handle_connection(mut stream: TcpStream) {
@@ -53,6 +76,7 @@ fn handle_connection(mut stream: TcpStream) {
         match request_obj.uri.as_str() {
             "/login" => user::login(request_obj, buffer),
             "/register" => user::register(request_obj, buffer),
+            "/admin" => admin::admin(request_obj, buffer),
             _ => ("HTTP/1.1 404 NOT FOUND".to_string(), fs::read_to_string("404.html").unwrap_or("404".to_string()))
         };
 

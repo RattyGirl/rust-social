@@ -17,33 +17,16 @@ pub fn login(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, Str
                 if v["username"].is_null() || v["password"].is_null() {
                     ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid JSON".to_string())
                 } else {
-                    let conn = Connection::open("rust-social.db").unwrap();
-                    // TODO actually properly do authentication stuff
+                    let hashedpw = to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap());
 
-                    let row: Result<User, Error> = conn.query_row("SELECT * FROM users WHERE username= ?1",
-                                                                  params![v["username"].as_str()], |row| {
-                            Ok(User {
-                                username: row.get(0)?,
-                                hashedpw: row.get(1)?
-                            })
-                        });
-                    // todo check for auth
-                    match row {
-                        Ok(r) => {
-                            let hashedpw = to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap());
-                            if check_user_password(v["username"].as_str().unwrap(), hashedpw.as_str(), &r) {
-                                (
-                                    "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
-                                        hashedpw.as_str(),
-                                    "Hello ".to_string() + v["username"].as_str().unwrap()
-                                )
-                            } else {
-                                ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid username or password".to_string())
-                            }
-                        }
-                        Err(e) => {
-                            ("HTTP/1.1 400 BAD REQUEST".to_string(), e.to_string())
-                        }
+                    if check_user_password(v["username"].as_str().unwrap(), hashedpw.as_str()) {
+                        (
+                            "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
+                                hashedpw.as_str() + "\nSet-Cookie: username=" + v["username"].as_str().unwrap(),
+                            "Hello ".to_string() + v["username"].as_str().unwrap()
+                        )
+                    } else {
+                        ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid username or password".to_string())
                     }
                 }
             },
@@ -76,7 +59,7 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
                         Ok(_) => {
                             (
                                 "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
-                                    hashedpw.as_str(),
+                                    hashedpw.as_str() + "\nSet-Cookie: username=" + v["username"].as_str().unwrap(),
                                 "Hello ".to_string() + v["username"].as_str().unwrap()
                             )
                         }
@@ -94,11 +77,29 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
     }
 }
 
-fn check_user_password(username: &str, password: &str, user: &User) -> bool {
-    if user.username.eq(username) {
-    //     check password
-        if user.hashedpw.eq(password) {
-            return true;
+fn check_user_password(username: &str, password: &str) -> bool {
+    let conn = Connection::open("rust-social.db").unwrap();
+    // TODO actually properly do authentication stuff
+
+    let row: Result<User, Error> = conn.query_row("SELECT * FROM users WHERE username= ?1",
+                                                  params![username], |row| {
+            Ok(User {
+                username: row.get(0)?,
+                hashedpw: row.get(1)?
+            })
+        });
+
+    match row {
+        Ok(user) => {
+            if user.username.eq(username) {
+                //     check password
+                if user.hashedpw.eq(password) {
+                    return true;
+                }
+            }
+        }
+        Err(e) => {
+
         }
     }
     return false

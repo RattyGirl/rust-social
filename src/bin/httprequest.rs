@@ -1,8 +1,6 @@
 use std::fmt;
 use std::collections::HashMap;
 
-///
-/// test
 pub struct Request {
     pub req_type: TYPE,
     pub uri: String,
