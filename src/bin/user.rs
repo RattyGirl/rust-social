@@ -15,7 +15,7 @@ pub fn login(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, Str
         match parsed {
             Ok(v) => {
                 if v["username"].is_null() || v["password"].is_null() {
-                    ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), "Invalid JSON".to_string())
+                    ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid JSON".to_string())
                 } else {
                     let conn = Connection::open("rust-social.db").unwrap();
                     // TODO actually properly do authentication stuff
@@ -38,20 +38,20 @@ pub fn login(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, Str
                                     "Hello ".to_string() + v["username"].as_str().unwrap()
                                 )
                             } else {
-                                ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), "Invalid username or password".to_string())
+                                ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid username or password".to_string())
                             }
                         }
                         Err(e) => {
-                            ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), e.to_string())
+                            ("HTTP/1.1 400 BAD REQUEST".to_string(), e.to_string())
                         }
                     }
                 }
             },
             Err(_) =>
-                ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), "Invalid JSON".to_string())
+                ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid JSON".to_string())
         }
     } else {
-        ("HTTP/1.1 404 NOT FOUND\r\n".to_string(), "pretend there a register page here".to_string())
+        ("HTTP/1.1 404 NOT FOUND".to_string(), "pretend there a register page here".to_string())
     }
 }
 
@@ -62,7 +62,7 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
         match parsed {
             Ok(v) => {
                 if v["username"].is_null() || v["password"].is_null() {
-                    ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), "Invalid JSON".to_string())
+                    ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid JSON".to_string())
                 } else {
                     let conn = Connection::open("rust-social.db").unwrap();
                     // TODO actually properly do authentication stuff
@@ -81,16 +81,16 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
                             )
                         }
                         Err(e) => {
-                            ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), e.to_string())
+                            ("HTTP/1.1 400 BAD REQUEST".to_string(), e.to_string())
                         }
                     }
                 }
             },
             Err(_) =>
-                ("HTTP/1.1 400 BAD REQUEST\r\n".to_string(), "Invalid JSON".to_string())
+                ("HTTP/1.1 400 BAD REQUEST".to_string(), "Invalid JSON".to_string())
         }
     } else {
-        ("HTTP/1.1 404 NOT FOUND\r\n".to_string(), "pretend there a register page here".to_string())
+        ("HTTP/1.1 404 NOT FOUND".to_string(), "pretend there a register page here".to_string())
     }
 }
 
