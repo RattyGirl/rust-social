@@ -29,12 +29,18 @@ fn main() {
 }
 
 fn generate_tables(conn: &Connection) {
-    conn.execute("drop table users", []);
-    conn.execute("create table users (
+    match conn.execute("drop table users", []) {
+        Ok(_) => println!("Dropped Table"),
+        Err(e) => println!("Tried to drop table - {}", e.to_string()),
+    }
+    match conn.execute("create table users (
                 username text not null unique,
                 hashedpw text not null
          )", [],
-    );
+    ) {
+        Ok(_) => println!("Created User Table"),
+        Err(e) => println!("Tried to create User Table - {}", e.to_string()),
+    }
 }
 
 fn handle_connection(mut stream: TcpStream) {
