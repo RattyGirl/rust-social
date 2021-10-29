@@ -19,7 +19,7 @@ pub fn login(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, Str
                 } else {
                     let hashedpw = to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap());
 
-                    if check_user_password(v["username"].as_str().unwrap(), hashedpw.as_str()) {
+                    if check_user_token(v["username"].as_str().unwrap(), hashedpw.as_str()) {
                         (
                             "HTTP/1.1 200 OK\r\nSet-Cookie: token=".to_string() +
                                 hashedpw.as_str() + "\nSet-Cookie: username=" + v["username"].as_str().unwrap(),
@@ -77,7 +77,7 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
     }
 }
 
-fn check_user_password(username: &str, password: &str) -> bool {
+pub fn check_user_token(username: &str, token: &str) -> bool {
     let conn = Connection::open("rust-social.db").unwrap();
     // TODO actually properly do authentication stuff
 
@@ -92,17 +92,16 @@ fn check_user_password(username: &str, password: &str) -> bool {
     match row {
         Ok(user) => {
             if user.username.eq(username) {
-                //     check password
-                if user.hashedpw.eq(password) {
+                if user.hashedpw.eq(token) {
                     return true;
                 }
             }
         }
         Err(e) => {
-
+            return false;
         }
     }
-    return false
+    return false;
 }
 
 fn to_hash(username: &str, password: &str) -> String {

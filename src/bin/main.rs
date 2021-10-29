@@ -29,6 +29,7 @@ fn main() {
     println!("Shutting down.");
 }
 
+#[allow(unused_must_use)]
 fn generate_tables(conn: &Connection) {
 
     conn.execute("drop table users_roles", []);
@@ -77,7 +78,7 @@ fn handle_connection(mut stream: TcpStream) {
             "/login" => user::login(request_obj, buffer),
             "/register" => user::register(request_obj, buffer),
             "/admin" => admin::admin(request_obj, buffer),
-            _ => ("HTTP/1.1 404 NOT FOUND".to_string(), fs::read_to_string("404.html").unwrap_or("404".to_string()))
+            _ => ("HTTP/1.1 404 NOT FOUND".to_string(), fs::read_to_string("www/404.html").unwrap_or("404".to_string()))
         };
 
     let response = format!(
