@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 json = "0.12.4"
 rust-crypto = "^0.2"
+rand = "0.8.4"
 
 [dependencies.rusqlite]
 version = "0.26.0"

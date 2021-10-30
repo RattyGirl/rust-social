@@ -39,7 +39,8 @@ fn generate_tables(conn: &Connection) {
 
     conn.execute("create table users (
                 username text not null unique,
-                hashedpw text not null
+                hashedpw text not null,
+                salt text
          )", [],
     );
 
@@ -55,6 +56,8 @@ fn generate_tables(conn: &Connection) {
         role_id int not null references roles(id),
         PRIMARY KEY (username, role_id)
     )", []);
+
+    // data
 
     conn.execute("insert into roles (name) VALUES ('admin');", []);
     conn.execute("insert into roles (name) VALUES ('moderator');", []);

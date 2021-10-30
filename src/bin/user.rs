@@ -5,8 +5,25 @@ use crypto::sha3::Sha3;
 
 #[derive(Debug)]
 pub struct User {
-    pub username: String,
-    pub hashedpw: String
+    pub username: String
+}
+
+pub fn does_user_have_role(username: String, role: String) -> bool {
+    let conn = Connection::open("rust-social.db").unwrap();
+
+    let result = conn.prepare("
+            SELECT * FROM users_roles
+            JOIN roles
+            ON users_roles.role_id = roles.id
+            WHERE username = ?1 AND name = ?2
+        ").unwrap().exists(params![username, role]);
+
+    match result {
+        Ok(x) => x,
+        Err(_) => false
+    }
+
+
 }
 
 pub fn login(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, String) {
@@ -50,6 +67,8 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
                     let conn = Connection::open("rust-social.db").unwrap();
                     // TODO actually properly do authentication stuff
 
+
+
                     let hashedpw = to_hash(v["username"].as_str().unwrap(), v["password"].as_str().unwrap());
 
                     match conn.execute(
@@ -77,27 +96,49 @@ pub fn register(request: httprequest::Request, _buffer: [u8; 1024]) -> (String, 
     }
 }
 
+pub fn verify_user(request: &httprequest::Request) -> Option<String> {
+    let username: String;
+    let hashed: String;
+    match (request.cookies.get("username"), request.cookies.get("token")) {
+        (Some(u), Some(pw)) => {
+            username = u.to_string();
+            hashed = pw.to_string();
+        }
+        _ => {
+            return None;
+        }
+    };
+
+    return if check_user_token(username.as_str(), hashed.as_str()) {
+        Some(username)
+    } else {
+        None
+    }
+
+}
 pub fn check_user_token(username: &str, token: &str) -> bool {
     let conn = Connection::open("rust-social.db").unwrap();
-    // TODO actually properly do authentication stuff
+    // TODO actually properly do authentication stuff maybe a per user salt
 
-    let row: Result<User, Error> = conn.query_row("SELECT * FROM users WHERE username= ?1",
+    let row: Result<(String, String), Error> = conn.query_row("SELECT * FROM users WHERE username= ?1",
                                                   params![username], |row| {
-            Ok(User {
-                username: row.get(0)?,
-                hashedpw: row.get(1)?
-            })
+            return Ok(
+                (
+                    row.get(0)?,
+                    row.get(1)?
+                )
+            );
         });
 
     match row {
         Ok(user) => {
-            if user.username.eq(username) {
-                if user.hashedpw.eq(token) {
+            if user.0.eq(username) {
+                if user.1.eq(token) {
                     return true;
                 }
             }
         }
-        Err(e) => {
+        Err(_) => {
             return false;
         }
     }
@@ -105,6 +146,8 @@ pub fn check_user_token(username: &str, token: &str) -> bool {
 }
 
 fn to_hash(username: &str, password: &str) -> String {
+    let mut rng = rand::thread_rng();
+
     let mut hasher = Sha3::sha3_512();
     hasher.input_str(env!("secret"));
     hasher.input_str(username);
