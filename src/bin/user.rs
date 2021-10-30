@@ -147,7 +147,7 @@ pub fn check_user_token(username: &str, token: &str) -> bool {
 
 fn to_hash(username: &str, password: &str) -> String {
     let mut rng = rand::thread_rng();
-
+    // TODO add rng to salt
     let mut hasher = Sha3::sha3_512();
     hasher.input_str(env!("secret"));
     hasher.input_str(username);
