@@ -23,4 +23,6 @@ jobs:
         with:
           rust-version: stable
       - name: Build | Compile
-        run: cargo build --package rust-social --bin main
+        run: cargo build
+      - name: Test | Crate
+        run: cargo test

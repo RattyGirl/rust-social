@@ -13,8 +13,8 @@ cd rust-social
 ```
 You can then build or run with either of the following when you have set the environment variable `secret`
 ```
-cargo build --package rust-social --bin main
-cargo run --package rust-social --bin main
+cargo build
+cargo run
 ```
 
 ## Reporting issues
