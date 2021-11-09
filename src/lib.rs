@@ -1,3 +1,5 @@
+mod view;
+
 use core::fmt;
 use std::collections::HashMap;
 use std::sync::mpsc;
