@@ -1,6 +1,5 @@
 use rust_social::Request;
-use std::fs;
-use crate::user;
+use crate::{user, make_view};
 
 pub fn admin_get(request: &Request) -> (String, String) {
     let username: String;
@@ -20,7 +19,7 @@ pub fn admin_get(request: &Request) -> (String, String) {
     if user::does_user_have_role(username, "admin".to_string()) {
         (
             "HTTP/1.1 200 OK".to_string(),
-            fs::read_to_string("www/admin.html").unwrap_or("admin".to_string()),
+            make_view!("admin.html").to_string(),
         )
     } else {
         (

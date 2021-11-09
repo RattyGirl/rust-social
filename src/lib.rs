@@ -126,7 +126,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Request {
     println!("{}",request);
     let body_splitheader: Vec<&str> = request.split("\r\n\r\n").collect();
     let headers = body_splitheader[0];
-    let body = body_splitheader[1];
+    let body = if body_splitheader.len() == 2 {body_splitheader[1]} else {""};
     let header_lines: Vec<&str> = headers.split("\r\n").collect();
 
     let mut req_obj = Request {
@@ -156,8 +156,10 @@ pub fn create_request(buffer: [u8; 1024]) -> Request {
                 //     parameters
                     let parameters: Vec<&str> = uristuff[1].split('&').collect();
                     for parameter in parameters {
-                        let vec: Vec<&str> = parameter.split("=").collect();
-                        req_obj.parameters.insert(vec[0].to_string(),vec[1].to_string());
+                        if !parameter.is_empty() {
+                            let vec: Vec<&str> = parameter.split("=").collect();
+                            req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
+                        }
                     }
                 }
             }

@@ -3,9 +3,6 @@ macro_rules! make_view {
     ($filename: expr) => {
         std::fs::read_to_string(std::format!("www/{}",$filename)).unwrap_or($filename.to_string()).as_str()
     };
-    ($filename: expr, $replacers: expr) => {{
-        str::replace(make_view!($filename), $replacers.0, $replacers.1)
-    }};
     ($filename: expr,, $($replacers: expr),*) => {{
         let mut out = std::fs::read_to_string(std::format!("www/{}",$filename)).unwrap_or($filename.to_string());
         $(

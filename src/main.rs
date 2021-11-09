@@ -1,9 +1,9 @@
 use rusqlite::Connection;
-use std::fs;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
 use rust_social::{ThreadPool, create_request, TYPE};
+use rust_social::make_view;
 
 mod user;
 mod admin;
@@ -97,15 +97,13 @@ fn handle_connection(mut stream: TcpStream) {
 
     let request_obj = create_request(buffer);
 
-    let (status_line, body) = match (request_obj.uri.as_str(), request_obj.req_type) {
+    let (status_line, body) = match (request_obj.uri.to_ascii_lowercase().as_str(), request_obj.req_type) {
         ("/login", TYPE::POST) => user::login_post(&request_obj),
         ("/register", TYPE::POST) => user::register_post(&request_obj),
         ("/admin", TYPE::GET) => admin::admin_get(&request_obj),
+        ("/post", TYPE::GET) => posts::post_get(&request_obj),
         ("/post", TYPE::POST) => posts::post_post(&request_obj),
-        _ => (
-            "HTTP/1.1 404 NOT FOUND".to_string(),
-            fs::read_to_string("www/404.html").unwrap_or("404".to_string()),
-        ),
+        (_,_) => ("HTTP/1.1 404 NOT FOUND".to_string(), make_view!("404.html").to_string()),
     };
 
     let response = format!(
