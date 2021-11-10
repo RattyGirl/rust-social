@@ -1,0 +1,35 @@
+    <h1>Make a post!</h1>
+    <div id="passorfail">
+    </div>
+    <form id="postform">
+        <div class="mb-3">
+            <label for="textArea" class="form-label">Example textarea</label>
+            <textarea class="form-control" id="textArea" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+<script>
+    function handleForm(e) {
+        e.preventDefault();
+        var request = new XMLHttpRequest();
+        request.open('POST', '/post', true);
+        request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        var toSend = {
+            "text": document.getElementById("textArea").value
+        };
+        request.onerror = function() {
+            document.getElementById("passorfail").innerHTML = "<div class=\"alert alert-danger\" role=\"alert\">\n" +
+                "    We were unable to complete the request\n" +
+                "</div>";
+        };
+        request.onload = function() {
+            if (request.readyState === request.DONE) {
+                if (request.status === 200) {
+                    document.getElementById("passorfail").innerHTML = request.responseText;
+                }
+            }
+        }
+        request.send(JSON.stringify(toSend));
+    }
+    document.getElementById("postform").addEventListener('submit', handleForm);
+</script>

@@ -27,17 +27,12 @@ struct Worker {
 impl ThreadPool {
     pub fn new(size: usize) -> ThreadPool {
         assert!(size > 0);
-
         let (sender, receiver) = mpsc::channel();
-
         let receiver = Arc::new(Mutex::new(receiver));
-
         let mut workers = Vec::with_capacity(size);
-
         for id in 0..size {
             workers.push(Worker::new(id, Arc::clone(&receiver)));
         }
-
         ThreadPool { workers, sender }
     }
 
@@ -114,7 +109,18 @@ pub enum TYPE {
     POST,
 }
 
-pub fn create_request(buffer: [u8; 1024]) -> Request {
+pub fn create_emp_req() -> Request {
+    Request {
+        req_type: TYPE::GET,
+        uri: "".to_string(),
+        headers: Default::default(),
+        cookies: Default::default(),
+        parameters: Default::default(),
+        body: "".to_string()
+    }
+}
+
+pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
     let mut request = String::new();
 
     for c in buffer {
@@ -123,68 +129,71 @@ pub fn create_request(buffer: [u8; 1024]) -> Request {
         }
         request.push(char::from(c));
     }
-    println!("{}",request);
-    let body_splitheader: Vec<&str> = request.split("\r\n\r\n").collect();
-    let headers = body_splitheader[0];
-    let body = if body_splitheader.len() == 2 {body_splitheader[1]} else {""};
-    let header_lines: Vec<&str> = headers.split("\r\n").collect();
+    if request.contains("HTTP/1.1") {
+        let body_splitheader: Vec<&str> = request.split("\r\n\r\n").collect();
+        let headers = body_splitheader[0];
+        let body = if body_splitheader.len() == 2 { body_splitheader[1] } else { "" };
+        let header_lines: Vec<&str> = headers.split("\r\n").collect();
 
-    let mut req_obj = Request {
-        req_type: TYPE::GET,
-        uri: "".to_string(),
-        headers: HashMap::new(),
-        cookies: HashMap::new(),
-        parameters: HashMap::new(),
-        body: "".to_string(),
-    };
-    // read headers
-    let mut counter = 0;
-    for line in header_lines {
-        if counter == 0 {
-            //     status line
-            let line: Vec<&str> = line.split(' ').collect();
-            req_obj.req_type = match line[0] {
-                "GET" => TYPE::GET,
-                "POST" => TYPE::POST,
-                _ => TYPE::GET,
-            };
-            // uri with parametesr
-            let uristuff: Vec<&str> = line[1].split('?').collect();
-            req_obj.uri = uristuff[0].to_string();
-            if uristuff.len() > 1 {
-                {
-                //     parameters
-                    let parameters: Vec<&str> = uristuff[1].split('&').collect();
-                    for parameter in parameters {
-                        if !parameter.is_empty() {
-                            let vec: Vec<&str> = parameter.split("=").collect();
-                            req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
+        let mut req_obj = Request {
+            req_type: TYPE::GET,
+            uri: "".to_string(),
+            headers: HashMap::new(),
+            cookies: HashMap::new(),
+            parameters: HashMap::new(),
+            body: "".to_string(),
+        };
+        // read headers
+        let mut counter = 0;
+        for line in header_lines {
+            if counter == 0 {
+                //     status line
+                let status_line: Vec<&str> = line.split(' ').collect();
+                req_obj.req_type = match status_line[0] {
+                    "GET" => TYPE::GET,
+                    "POST" => TYPE::POST,
+                    _ => TYPE::GET,
+                };
+                // uri with parametesr
+                let uristuff: Vec<&str> = status_line[1].split('?').collect();
+                req_obj.uri = uristuff[0].to_string();
+                if uristuff.len() > 1 {
+                    {
+                        //     parameters
+                        let parameters: Vec<&str> = uristuff[1].split('&').collect();
+                        for parameter in parameters {
+                            if !parameter.is_empty() {
+                                let vec: Vec<&str> = parameter.split("=").collect();
+                                req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
+                            }
                         }
                     }
                 }
-            }
-        } else {
-            let line: Vec<&str> = line.split(": ").collect();
-            if line[0].eq("Cookie") {
-                let cookies: Vec<&str> = line[1].split("; ").collect();
-                for cookie in cookies {
-                    let cookie: Vec<&str> = cookie.split("=").collect();
-                    req_obj
-                        .cookies
-                        .insert(cookie[0].to_string(), cookie[1].to_string());
-                }
             } else {
-                req_obj
-                    .headers
-                    .insert(line[0].to_string(), line[1].to_string());
+                let line: Vec<&str> = line.split(": ").collect();
+                if line[0].eq("Cookie") {
+                    let cookies: Vec<&str> = line[1].split("; ").collect();
+                    for cookie in cookies {
+                        let cookie: Vec<&str> = cookie.split("=").collect();
+                        req_obj
+                            .cookies
+                            .insert(cookie[0].to_string(), cookie[1].to_string());
+                    }
+                } else {
+                    req_obj
+                        .headers
+                        .insert(line[0].to_string(), line[1].to_string());
+                }
             }
+            counter = counter + 1;
         }
-        counter = counter + 1;
+
+        req_obj.body = body.to_string();
+
+        return Some(req_obj);
+    } else {
+        None
     }
-
-    req_obj.body = body.to_string();
-
-    return req_obj;
 }
 
 impl fmt::Display for Request {

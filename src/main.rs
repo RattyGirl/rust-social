@@ -95,9 +95,15 @@ fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).unwrap();
 
-    let request_obj = create_request(buffer);
+    let request_obj = match create_request(buffer) {
+        None => {
+            rust_social::create_emp_req()
+        }
+        Some(x) => {x}
+    };
 
     let (status_line, body) = match (request_obj.uri.to_ascii_lowercase().as_str(), request_obj.req_type) {
+        ("/", TYPE::GET) => posts::home_get(&request_obj),
         ("/login", TYPE::POST) => user::login_post(&request_obj),
         ("/register", TYPE::POST) => user::register_post(&request_obj),
         ("/admin", TYPE::GET) => admin::admin_get(&request_obj),
