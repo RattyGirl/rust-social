@@ -90,12 +90,13 @@ fn generate_tables(conn: &Connection) {
     conn.execute("insert into users (username, hashedpw, salt) VALUES ('rat','c7c21c131c46c3e2725bb745de6768baf41ae0366110fc3645bd5bcc50145a3bea3f52323888fac36dbde6e964b1d0678c13116e1193d465bdcaa189d119cc9a', '319152662097124763509187784674982699619');", []);
 
     conn.execute(
-        "insert into users_roles (username, role_id) VALUES ('rat',1)",
-        [],
+        "insert into users_roles (username, role_id) VALUES ('rat',1)",[],
     );
     conn.execute(
-        "insert into users_roles (username, role_id) VALUES ('rat',4)",
-        [],
+        "insert into users_roles (username, role_id) VALUES ('rat',4)",[],
+    );
+    conn.execute(
+        "INSERT INTO posts (author, content, posted_time) VALUES ('a','aaa','2021-11-11 13:18:30')", [],
     );
 }
 

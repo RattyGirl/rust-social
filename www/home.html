@@ -4,16 +4,81 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <title>Rust-Social</title>
 </head>
 <body>
 <div class="container">
-    {postcontent}
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Navbar</a>
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Features</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Pricing</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Login
+                    </a>
+                    <div class="dropdown-menu" style="padding: 15px; padding-bottom: 10px;">
+                        <form class="form-horizontal" method="post" accept-charset="UTF-8" id="loginForm" action="/login">
+                            <input class="form-control login" type="text" name="username" placeholder="Username.." id="usernameInput"><br>
+                            <input class="form-control login" type="password" name="password" placeholder="Password.." id="passwordInput"><br>
+                            <input class="btn btn-primary" type="submit" name="submit" value="Login">
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+<!--    compose a post -->
+    <h1>Make a post!</h1>
+    <div id="passorfail">
+    </div>
+    <form id="postform">
+        <div class="mb-3">
+            <label for="composeTextArea" class="form-label">Example textarea</label>
+            <textarea class="form-control" id="composeTextArea" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
 
     {posts}
-    {posts}
 </div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
 </body>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+<script>
+    function handleComposePost(e) {
+        e.preventDefault();
+        var request = new XMLHttpRequest();
+        request.open('POST', '/post', true);
+        request.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        var toSend = {
+            "text": document.getElementById("composeTextArea").value
+        };
+        request.onerror = function() {
+            document.getElementById("passorfail").innerHTML = "<div class=\"alert alert-danger\" role=\"alert\">\n" +
+                "    We were unable to complete the request\n" +
+                "</div>";
+        };
+        request.onload = function() {
+            if (request.readyState === request.DONE) {
+                if (request.status === 200) {
+                    document.getElementById("passorfail").innerHTML = request.responseText;
+                }
+            }
+        }
+        request.send(JSON.stringify(toSend));
+    }
+    document.getElementById("postform").addEventListener('submit', handleComposePost);
+</script>
 </html>
