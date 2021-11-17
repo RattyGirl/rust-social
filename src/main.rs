@@ -32,18 +32,20 @@ fn main() {
 fn generate_tables(conn: &Connection) {
     conn.execute("drop table users_roles", []);
     conn.execute("drop table roles", []);
+    conn.execute("drop table posts", []);
+    conn.execute("drop table roles", []);
+    conn.execute("drop table sessions", []);
     conn.execute("drop table users", []);
 
     conn.execute(
         "create table users (
                 username text not null unique,
                 hashedpw text not null,
-                salt text
+                salt text not null
          )",
         [],
     );
 
-    conn.execute("drop table roles", []);
     conn.execute(
         "create table roles (
                 id integer primary key AUTOINCREMENT,
@@ -52,7 +54,6 @@ fn generate_tables(conn: &Connection) {
         [],
     );
 
-    conn.execute("drop table posts", []);
     conn.execute(
         "create table posts (
                 id integer primary key AUTOINCREMENT,
@@ -68,9 +69,16 @@ fn generate_tables(conn: &Connection) {
         username text not null references users(username),
         role_id int not null references roles(id),
         PRIMARY KEY (username, role_id)
-    )",
+        )",
         [],
     );
+
+    conn.execute(
+    "create table sessions (
+          id integer primary key AUTOINCREMENT,
+          username text not null references users(username),
+          token text not null
+    )", [],);
 
     // data
 
@@ -79,7 +87,7 @@ fn generate_tables(conn: &Connection) {
     conn.execute("insert into roles (name) VALUES ('user');", []);
     conn.execute("insert into roles (name) VALUES ('banned');", []);
 
-    conn.execute("insert into users (username, hashedpw) VALUES ('rat', 'd98d547fbcb9546985057ad654ef1ea81ae1a950c2adbcbd4a9216e13300080e40e2d316eb80d97446be5f20f01f9bc7f214d8e6797a21ebba950295b34cb5d5');", []);
+    conn.execute("insert into users (username, hashedpw, salt) VALUES ('rat','c7c21c131c46c3e2725bb745de6768baf41ae0366110fc3645bd5bcc50145a3bea3f52323888fac36dbde6e964b1d0678c13116e1193d465bdcaa189d119cc9a', '319152662097124763509187784674982699619');", []);
 
     conn.execute(
         "insert into users_roles (username, role_id) VALUES ('rat',1)",

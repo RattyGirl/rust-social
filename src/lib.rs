@@ -6,6 +6,9 @@ use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
+use crypto::sha3::Sha3;
+use crypto::digest::Digest;
+use rusqlite::{Connection, params};
 
 enum Message {
     NewJob(Job),
@@ -206,6 +209,146 @@ impl fmt::Display for Request {
 
 pub struct User {
     pub username: String,
+}
+
+impl User {
+    pub fn new(username: &str, password: &str) -> Option<Self> {
+
+        let salt: String = rand::random::<u128>().to_string();
+        let mut hasher = Sha3::sha3_512();
+        hasher.input_str(env!("secret"));
+        hasher.input_str(username);
+        hasher.input_str(password);
+        hasher.input_str(salt.as_str());
+
+        let hashedpw = hasher.result_str();
+
+        let conn = Connection::open("rust-social.db").unwrap();
+        match conn.execute(
+            "INSERT INTO users (username, hashedpw, salt) VALUES (?1, ?2, ?3)",
+            rusqlite::params![username, hashedpw, salt],
+        ) {
+            Ok(x) => {
+                if x == 0 {
+                    None
+                } else {
+                //     user created in db
+                    Some(User {
+                        username: username.to_string()
+                    })
+                }
+            }
+            Err(e) => {
+                println!("Error adding user {} to the database\nError: {}", username, e);
+                None
+            }
+        }
+    }
+
+    pub fn login(username: &str, password: &str) -> Option<Self> {
+
+        struct UserRow {
+            username: String,
+            hashedpw: String,
+            salt: String
+        }
+
+        let conn = Connection::open("rust-social.db").unwrap();
+        match conn.query_row("SELECT * FROM users WHERE username = ?1",
+            params![username],
+            |row| Ok(UserRow {
+                username: row.get(0)?,
+                hashedpw: row.get(1)?,
+                salt: row.get(2)?,
+            })) {
+            Ok(userrow) => {
+
+                let mut hasher = Sha3::sha3_512();
+                hasher.input_str(env!("secret"));
+                hasher.input_str(username);
+                hasher.input_str(password);
+                hasher.input_str(userrow.salt.as_str());
+
+                if hasher.result_str().eq(userrow.hashedpw.as_str()) {
+                //     password correct
+                    Some(User {
+                        username: userrow.username
+                    })
+                } else {
+                    None
+                }
+
+            }
+            Err(_) => {
+                None
+            }
+        }
+    }
+
+    pub fn generate_token(&self) -> Option<String> {
+        let session_token: String = rand::random::<u128>().to_string();
+        let conn = Connection::open("rust-social.db").unwrap();
+        match conn.execute(
+            "INSERT INTO sessions (username, token) VALUES (?1, ?2)",
+            rusqlite::params![self.username, session_token],
+        ) {
+            Ok(x) => {
+                if x == 0 {
+                    None
+                } else {
+                    Some(session_token)
+                }
+            }
+            Err(e) => {
+                println!("Error generating session for user {} to the database\nError: {}", self.username, e);
+                None
+            }
+        }
+    }
+
+    pub fn get_if_valid(token: &String) -> Option<Self> {
+        // TODO check time
+        let conn = Connection::open("rust-social.db").unwrap();
+        let row: Result<String, rusqlite::Error> = conn.query_row(
+            "SELECT * FROM sessions where token = ?1",
+            rusqlite::params![token],
+            |row| row.get(1)
+        );
+        match row {
+            Ok(username) => {
+                Some(User {
+                    username
+                })
+            }
+            Err(e) => {
+                println!("{}",e);
+                None
+            }
+        }
+    }
+
+    pub fn does_user_have_role(&self, role: String) -> bool {
+        let conn = Connection::open("rust-social.db").unwrap();
+
+        let result = conn
+            .prepare(
+                "
+            SELECT * FROM users_roles
+            JOIN roles
+            ON users_roles.role_id = roles.id
+            WHERE username = ?1 AND name = ?2
+        ",
+            )
+            .unwrap()
+            .exists(rusqlite::params![self.username, role]);
+
+        match result {
+            Ok(x) => x,
+            Err(_) => false,
+        }
+
+    }
+
 }
 
 pub struct Post {
