@@ -22,7 +22,7 @@ fn get_all_posts() -> String {
     let mut out: String = String::new();
     let conn = Connection::open("rust-social.db").unwrap();
 
-    let mut stmt = conn.prepare("SELECT id, author, content, posted_time FROM posts").unwrap();
+    let mut stmt = conn.prepare("SELECT id, author, content, posted_time FROM posts ORDER BY id DESC").unwrap();
     let posts_iter = stmt.query_map([], |row| {
         Ok(Post {
             id: row.get(0)?,
@@ -67,8 +67,7 @@ pub fn post_post(request: &Request) -> (String, String) {
                             Ok(_) => {
                                 (
                                     "HTTP/1.1 200 OK".to_string(),
-                                    make_view!("postalert.html",,("{role}", "success"),
-                                    ("{innertext}", v["text"].as_str().unwrap())).to_string(),
+                                    make_view!("loginredirect.html").to_string(),
                                 )
                             },
                             Err(e) => {

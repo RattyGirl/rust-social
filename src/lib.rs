@@ -138,6 +138,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
         let body = if body_splitheader.len() == 2 { body_splitheader[1] } else { "" };
         let header_lines: Vec<&str> = headers.split("\r\n").collect();
 
+
         let mut req_obj = Request {
             req_type: TYPE::GET,
             uri: "".to_string(),
@@ -167,7 +168,11 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
                         for parameter in parameters {
                             if !parameter.is_empty() {
                                 let vec: Vec<&str> = parameter.split("=").collect();
-                                req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
+                                if vec.len() == 2 {
+                                    req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
+                                } else {
+                                    req_obj.parameters.insert(vec[0].to_string(), "".to_string());
+                                }
                             }
                         }
                     }
@@ -192,6 +197,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
         }
 
         req_obj.body = body.to_string();
+
 
         return Some(req_obj);
     } else {

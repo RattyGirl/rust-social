@@ -96,7 +96,7 @@ fn generate_tables(conn: &Connection) {
         "insert into users_roles (username, role_id) VALUES ('rat',4)",[],
     );
     conn.execute(
-        "INSERT INTO posts (author, content, posted_time) VALUES ('a','aaa','2021-11-11 13:18:30')", [],
+        "INSERT INTO posts (author, content, posted_time) VALUES ('a','rat','2021-11-11 13:18:30')", [],
     );
 }
 
@@ -108,7 +108,9 @@ fn handle_connection(mut stream: TcpStream) {
         None => {
             rust_social::create_emp_req()
         }
-        Some(x) => {x}
+        Some(x) => {
+            x
+        }
     };
 
     let (status_line, body) = match (request_obj.uri.to_ascii_lowercase().as_str(), request_obj.req_type) {
