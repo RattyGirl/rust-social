@@ -73,7 +73,7 @@ pub fn post_post(request: &Request) -> (String, String) {
                             Ok(_) => {
                                 (
                                     "HTTP/1.1 200 OK".to_string(),
-                                    make_view!("loginredirect.html").to_string(),
+                                    make_view!("homeredirect.html").to_string(),
                                 )
                             },
                             Err(e) => {

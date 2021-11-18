@@ -19,7 +19,7 @@ pub fn admin_get(request: &Request) -> (String, String) {
         None => {
             (
                 "HTTP/1.1 200 OK".to_string(),
-                make_view!("loginredirect.html").to_string()
+                make_view!("homeredirect.html").to_string()
             )
         }
     }

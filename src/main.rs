@@ -2,7 +2,7 @@ use rusqlite::Connection;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
-use rust_social::{ThreadPool, create_request, TYPE};
+use rust_social::{ThreadPool, create_request, TYPE, Request};
 use rust_social::make_view;
 
 mod user;
@@ -116,15 +116,7 @@ fn handle_connection(mut stream: TcpStream) {
         }
     };
 
-    let (status_line, body) = match (request_obj.uri.to_ascii_lowercase().as_str(), request_obj.req_type) {
-        ("/", TYPE::GET) => posts::home_get(&request_obj),
-        ("/login", TYPE::POST) => user::login_post(&request_obj),
-        ("/register", TYPE::POST) => user::register_post(&request_obj),
-        ("/admin", TYPE::GET) => admin::admin_get(&request_obj),
-        ("/post", TYPE::GET) => posts::post_get(&request_obj),
-        ("/post", TYPE::POST) => posts::post_post(&request_obj),
-        (_,_) => ("HTTP/1.1 404 NOT FOUND".to_string(), make_view!("404.html").to_string()),
-    };
+    let (status_line, body) = get_response(&request_obj);
 
     let response = format!(
         "{}\r\nContent-Length: {}\r\n\r\n{}",
@@ -135,4 +127,22 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
+}
+
+pub fn get_response(request_obj: &Request) -> (String, String) {
+    match (request_obj.uri.to_ascii_lowercase().as_str(), request_obj.req_type) {
+        ("/", TYPE::GET) => posts::home_get(request_obj),
+        ("/login", TYPE::POST) => user::login_post(request_obj),
+
+        ("/register", TYPE::POST) => user::register_post(request_obj),
+        ("/register", TYPE::GET) => user::register_get(request_obj),
+
+        ("/post", TYPE::GET) => posts::post_get(request_obj),
+        ("/post", TYPE::POST) => posts::post_post(request_obj),
+
+        ("/admin", TYPE::GET) => admin::admin_get(request_obj),
+
+
+        (_,_) => ("HTTP/1.1 404 NOT FOUND".to_string(), make_view!("404.html").to_string()),
+    }
 }
