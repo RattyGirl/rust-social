@@ -82,7 +82,7 @@ pub fn register_post(request: &Request) -> (String, String) {
                         (
                             "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()
                                 + token.as_str(),
-                            "Hello ".to_string() + u.username.as_str(),
+                            make_view!("homeredirect.html").to_string(),
                         )
                     }
                     None => {
