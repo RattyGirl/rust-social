@@ -5,7 +5,7 @@ pub fn login_post(request: &Request) -> (String, String) {
 
     let mut parameters_hashmap: HashMap<String, String> = HashMap::new();
 
-    if request.headers.get("Content-Type").unwrap_or(&"".to_string()).eq("application/x-www-form-urlencoded") {
+    if request.headers.get("Content-Type").unwrap_or(&String::new()).eq("application/x-www-form-urlencoded") {
         let parameters: Vec<&str> = request.body.split('&').collect();
         for parameter in parameters {
             if !parameter.is_empty() {
@@ -13,7 +13,7 @@ pub fn login_post(request: &Request) -> (String, String) {
                 if vec.len() == 2 {
                     parameters_hashmap.insert(vec[0].to_string(), vec[1].to_string());
                 } else {
-                    parameters_hashmap.insert(vec[0].to_string(), "".to_string());
+                    parameters_hashmap.insert(vec[0].to_string(), String::new());
                 }
             }
         }
@@ -22,7 +22,7 @@ pub fn login_post(request: &Request) -> (String, String) {
             (Some(username), Some(password)) => {
                 match User::login(username, password) {
                     Some(u) => {
-                        let token = u.generate_token().unwrap_or_else(|| "".to_string());
+                        let token = u.generate_token().unwrap_or_default();
                         (
                             "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()
                                 + token.as_str(),
@@ -60,7 +60,7 @@ pub fn register_get(_request: &Request) -> (String, String) {
 pub fn register_post(request: &Request) -> (String, String) {
     let mut parameters_hashmap: HashMap<String, String> = HashMap::new();
 
-    if request.headers.get("Content-Type").unwrap_or(&"".to_string()).eq("application/x-www-form-urlencoded") {
+    if request.headers.get("Content-Type").unwrap_or(&String::new()).eq("application/x-www-form-urlencoded") {
         let parameters: Vec<&str> = request.body.split('&').collect();
         for parameter in parameters {
             if !parameter.is_empty() {
@@ -68,7 +68,7 @@ pub fn register_post(request: &Request) -> (String, String) {
                 if vec.len() == 2 {
                     parameters_hashmap.insert(vec[0].to_string(), vec[1].to_string());
                 } else {
-                    parameters_hashmap.insert(vec[0].to_string(), "".to_string());
+                    parameters_hashmap.insert(vec[0].to_string(), String::new());
                 }
             }
         }
@@ -77,7 +77,7 @@ pub fn register_post(request: &Request) -> (String, String) {
             (Some(username), Some(password)) => {
                 match User::new(username, password) {
                     Some(u) => {
-                        let token = u.generate_token().unwrap_or_else(|| "".to_string());
+                        let token = u.generate_token().unwrap_or_default();
 
                         (
                             "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()

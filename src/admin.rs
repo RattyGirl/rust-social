@@ -2,7 +2,7 @@ use rust_social::{Request, User};
 use crate::{make_view};
 
 pub fn admin_get(request: &Request) -> (String, String) {
-    match User::get_if_valid(request.cookies.get("token").unwrap_or(&"".to_string())) {
+    match User::get_if_valid(request.cookies.get("token").unwrap_or(&String::new())) {
         Some(u) => {
             if u.does_user_have_role("admin".to_string()) {
                 (

@@ -116,11 +116,11 @@ pub enum TYPE {
 pub fn create_emp_req() -> Request {
     Request {
         req_type: TYPE::GET,
-        uri: "".to_string(),
+        uri: String::new(),
         headers: Default::default(),
         cookies: Default::default(),
         parameters: Default::default(),
-        body: "".to_string()
+        body: String::new()
     }
 }
 
@@ -142,11 +142,11 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
 
         let mut req_obj = Request {
             req_type: TYPE::GET,
-            uri: "".to_string(),
+            uri: String::new(),
             headers: HashMap::new(),
             cookies: HashMap::new(),
             parameters: HashMap::new(),
-            body: "".to_string(),
+            body: String::new(),
         };
         // read headers
         for (counter, line) in header_lines.into_iter().enumerate() {
@@ -171,7 +171,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
                                 if vec.len() == 2 {
                                     req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
                                 } else {
-                                    req_obj.parameters.insert(vec[0].to_string(), "".to_string());
+                                    req_obj.parameters.insert(vec[0].to_string(), String::new());
                                 }
                             }
                         }

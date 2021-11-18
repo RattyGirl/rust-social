@@ -63,7 +63,7 @@ pub fn post_post(request: &Request) -> (String, String) {
         Ok(v) => {
             if !v["text"].is_null() {
                 // TODO XSS
-                match User::get_if_valid(request.cookies.get("token").unwrap_or(&"".to_string())) {
+                match User::get_if_valid(request.cookies.get("token").unwrap_or(&String::new())) {
                     Some(user) => {
                         let conn = Connection::open("rust-social.db").unwrap();
                         match conn.execute(
