@@ -100,8 +100,11 @@ fn generate_tables(conn: &Connection) {
     );
 }
 
+#[allow(clippy::unused_io_amount)]
 fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
+
+
     stream.read(&mut buffer).unwrap();
 
     let request_obj = match create_request(buffer) {
@@ -130,6 +133,6 @@ fn handle_connection(mut stream: TcpStream) {
         body
     );
 
-    stream.write(response.as_bytes()).unwrap();
+    stream.write_all(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }

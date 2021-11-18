@@ -9,7 +9,7 @@ pub fn login_post(request: &Request) -> (String, String) {
         let parameters: Vec<&str> = request.body.split('&').collect();
         for parameter in parameters {
             if !parameter.is_empty() {
-                let vec: Vec<&str> = parameter.split("=").collect();
+                let vec: Vec<&str> = parameter.split('=').collect();
                 if vec.len() == 2 {
                     parameters_hashmap.insert(vec[0].to_string(), vec[1].to_string());
                 } else {
@@ -22,7 +22,7 @@ pub fn login_post(request: &Request) -> (String, String) {
             (Some(username), Some(password)) => {
                 match User::login(username, password) {
                     Some(u) => {
-                        let token = u.generate_token().unwrap_or("".to_string());
+                        let token = u.generate_token().unwrap_or_else(|| "".to_string());
                         (
                             "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()
                                 + token.as_str(),
@@ -62,7 +62,7 @@ pub fn register_post(request: &Request) -> (String, String) {
             } else {
                 match User::new(v["username"].as_str().unwrap(), v["password"].as_str().unwrap()) {
                     Some(u) => {
-                        let token = u.generate_token().unwrap_or("".to_string());
+                        let token = u.generate_token().unwrap_or_else(|| "".to_string());
 
                         (
                             "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()

@@ -1,5 +1,5 @@
 use rust_social::{Request, User};
-use crate::{user, make_view};
+use crate::{make_view};
 
 pub fn admin_get(request: &Request) -> (String, String) {
     match User::get_if_valid(request.cookies.get("token").unwrap_or(&"".to_string())) {

@@ -1,16 +1,18 @@
 use rust_social::{Request, make_view, User};
 use rusqlite::Connection;
 
-pub fn home_get(request: &Request) -> (String, String) {
+pub fn home_get(_request: &Request) -> (String, String) {
+
     (
         "HTTP/1.1 200 OK".to_string(),
         make_view!("home.html",,
         ("{posts}", get_all_posts().as_str())
-        ).to_string()
+        )
     )
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct Post {
     id: i32,
     author: String,
@@ -33,18 +35,22 @@ fn get_all_posts() -> String {
     }).unwrap();
 
     for post in posts_iter {
-        if post.is_ok() {
-            let post = post.unwrap();
-            out.push_str(make_view!("post.html").replace("{username}", &post.author)
-                .replace("{content}", &post.content)
-                .replace("{time}", &post.time).as_str());
+        match post {
+            Ok(p) => {
+                out.push_str(make_view!("post.html").replace("{username}", &p.author)
+                    .replace("{content}", &p.content)
+                    .replace("{time}", &p.time).as_str());
+            }
+            Err(e) => {
+                println!("Error with Post {:?}", e);
+            }
         }
     }
 
-    return out;
+    out
 }
 
-pub fn post_get(request: &Request) -> (String, String) {
+pub fn post_get(_request: &Request) -> (String, String) {
     (
         "HTTP/1.1 200 OK".to_string(),
         make_view!("composepost.html").to_string()
@@ -75,7 +81,7 @@ pub fn post_post(request: &Request) -> (String, String) {
                                 (
                                     "HTTP/1.1 200 OK".to_string(),
                                     make_view!("postalert.html",,("{role}", "danger"),
-                                    ("{innertext}", "Invalid message")).to_string(),
+                                    ("{innertext}", "Invalid message")),
                                 )
                             }
                         }
@@ -84,7 +90,7 @@ pub fn post_post(request: &Request) -> (String, String) {
                         (
                             "HTTP/1.1 200 OK".to_string(),
                             make_view!("postalert.html",,("{role}", "danger"),
-                            ("{innertext}", "Please login")).to_string(),
+                            ("{innertext}", "Please login")),
                         )
                     }
                 }
@@ -92,14 +98,14 @@ pub fn post_post(request: &Request) -> (String, String) {
                 (
                     "HTTP/1.1 200 OK".to_string(),
                     make_view!("postalert.html",,("{role}", "danger"),
-                    ("{innertext}", "Your message is empty")).to_string(),
+                    ("{innertext}", "Your message is empty")),
                 )
             }
         }
         Err(_) => (
             "HTTP/1.1 200 OK".to_string(),
             make_view!("postalert.html",,("{role}", "danger"),
-            ("{innertext}", "Invalid message")).to_string(),
+            ("{innertext}", "Invalid message")),
         ),
     }
 }

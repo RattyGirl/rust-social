@@ -2,6 +2,7 @@ mod view;
 
 use core::fmt;
 use std::collections::HashMap;
+use std::str::Split;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -136,7 +137,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
         let body_splitheader: Vec<&str> = request.split("\r\n\r\n").collect();
         let headers = body_splitheader[0];
         let body = if body_splitheader.len() == 2 { body_splitheader[1] } else { "" };
-        let header_lines: Vec<&str> = headers.split("\r\n").collect();
+        let header_lines: Split<&str> = headers.split("\r\n");
 
 
         let mut req_obj = Request {
@@ -148,8 +149,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
             body: "".to_string(),
         };
         // read headers
-        let mut counter = 0;
-        for line in header_lines {
+        for (counter, line) in header_lines.into_iter().enumerate() {
             if counter == 0 {
                 //     status line
                 let status_line: Vec<&str> = line.split(' ').collect();
@@ -167,7 +167,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
                         let parameters: Vec<&str> = uristuff[1].split('&').collect();
                         for parameter in parameters {
                             if !parameter.is_empty() {
-                                let vec: Vec<&str> = parameter.split("=").collect();
+                                let vec: Vec<&str> = parameter.split('=').collect();
                                 if vec.len() == 2 {
                                     req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
                                 } else {
@@ -182,7 +182,7 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
                 if line[0].eq("Cookie") {
                     let cookies: Vec<&str> = line[1].split("; ").collect();
                     for cookie in cookies {
-                        let cookie: Vec<&str> = cookie.split("=").collect();
+                        let cookie: Vec<&str> = cookie.split('=').collect();
                         req_obj
                             .cookies
                             .insert(cookie[0].to_string(), cookie[1].to_string());
@@ -193,13 +193,12 @@ pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
                         .insert(line[0].to_string(), line[1].to_string());
                 }
             }
-            counter = counter + 1;
         }
 
         req_obj.body = body.to_string();
 
 
-        return Some(req_obj);
+        Some(req_obj)
     } else {
         None
     }
@@ -312,7 +311,7 @@ impl User {
         }
     }
 
-    pub fn get_if_valid(token: &String) -> Option<Self> {
+    pub fn get_if_valid(token: &str) -> Option<Self> {
         // TODO check time
         let conn = Connection::open("rust-social.db").unwrap();
         let row: Result<String, rusqlite::Error> = conn.query_row(
@@ -336,7 +335,7 @@ impl User {
     pub fn does_user_have_role(&self, role: String) -> bool {
         let conn = Connection::open("rust-social.db").unwrap();
 
-        let result = conn
+        let x = conn
             .prepare(
                 "
             SELECT * FROM users_roles
@@ -348,10 +347,7 @@ impl User {
             .unwrap()
             .exists(rusqlite::params![self.username, role]);
 
-        match result {
-            Ok(x) => x,
-            Err(_) => false,
-        }
+        x.unwrap_or(false)
 
     }
 

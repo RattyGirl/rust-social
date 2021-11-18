@@ -10,6 +10,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    env:
+      secret: secret-key-that-nobody-knows
+    steps:
+      - uses: actions/checkout@v1
+      - run: rustup component add clippy
+      - uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
   compile:
     name: Compile
     runs-on: ubuntu-latest
