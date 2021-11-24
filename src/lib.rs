@@ -11,8 +11,8 @@ use crypto::sha3::Sha3;
 use crypto::digest::Digest;
 use rusqlite::{Connection, params};
 
-const DB_LOCATION: &str = "rust-social.db";
-const SERVER_ADDRESS: &str = "127.0.0.1:7878";
+pub const DB_LOCATION: &str = "rust-social.db";
+pub const SERVER_ADDRESS: &str = "127.0.0.1:7878";
 
 enum Message {
     NewJob(Job),

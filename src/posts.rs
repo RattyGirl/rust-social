@@ -1,4 +1,4 @@
-use rust_social::{Request, make_view, User};
+use rust_social::{Request, make_view, User, DB_LOCATION};
 use rusqlite::Connection;
 
 pub fn home_get(_request: &Request) -> (String, String) {

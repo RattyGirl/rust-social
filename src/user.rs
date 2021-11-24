@@ -107,7 +107,7 @@ pub fn register_post(request: &Request) -> (String, String) {
 
 #[cfg(test)]
 mod tests {
-    use rust_social::{Request, TYPE};
+    use rust_social::{Request, TYPE, DB_LOCATION};
     use crate::user::{register_post};
     use rusqlite::Connection;
 

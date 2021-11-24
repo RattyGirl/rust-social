@@ -2,8 +2,8 @@ use rusqlite::Connection;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
-use rust_social::{ThreadPool, create_request, TYPE, Request};
-use rust_social::make_view;
+use rust_social::{ThreadPool, create_request, TYPE, Request, DB_LOCATION, SERVER_ADDRESS};
+use rust_social::{make_view};
 
 mod user;
 mod admin;
