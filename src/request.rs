@@ -107,6 +107,7 @@ impl Request {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(PartialEq, Copy, Clone)]
 pub enum TYPE {
     GET,

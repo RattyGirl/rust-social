@@ -220,7 +220,7 @@ impl User {
                 })
             }
             Err(e) => {
-                println!("{}",e);
+                println!("Error finding user with token: {}",e);
                 None
             }
         }
@@ -242,6 +242,18 @@ impl User {
             .exists(rusqlite::params![self.username, role]);
 
         x.unwrap_or(false)
+
+    }
+
+    pub fn add_role(&self, role: &str) -> Result<bool, rusqlite::Error>{
+    // insert into users_roles (username, role_id) VALUES ('rat',4)
+        let conn = Connection::open(DB_LOCATION)?;
+
+        match conn.execute("insert into users_roles (username, role_id) VALUES (?1, (SELECT id FROM roles WHERE name = ?2))",
+                     params![self.username, role]) {
+            Ok(_) => Ok(true),
+            Err(e) => Err(e),
+        }
 
     }
 

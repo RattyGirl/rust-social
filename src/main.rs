@@ -1,8 +1,8 @@
-use rusqlite::Connection;
+use rusqlite::{Connection};
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
-use rust_social::{ThreadPool, DB_LOCATION, SERVER_ADDRESS, make_view};
+use rust_social::{ThreadPool, DB_LOCATION, SERVER_ADDRESS, make_view, User};
 use crate::request::{Request, Response, TYPE};
 
 mod request;
@@ -12,7 +12,13 @@ mod posts;
 
 fn main() {
     let conn = Connection::open(DB_LOCATION).unwrap();
-    generate_tables(&conn);
+    let table_gen = generate_tables(&conn);
+    match table_gen {
+        Ok(_) => {}
+        Err(e) => {
+            println!("Error found when generating tables: {}", e);
+        }
+    }
     conn.close().unwrap();
 
     let listener = TcpListener::bind(SERVER_ADDRESS).unwrap();
@@ -30,13 +36,13 @@ fn main() {
 }
 
 #[allow(unused_must_use)]
-fn generate_tables(conn: &Connection) {
-    conn.execute("drop table users_roles", []);
-    conn.execute("drop table roles", []);
-    conn.execute("drop table posts", []);
-    conn.execute("drop table roles", []);
-    conn.execute("drop table sessions", []);
-    conn.execute("drop table users", []);
+fn generate_tables(conn: &Connection) -> Result<bool, rusqlite::Error> {
+    conn.execute("drop table if exists users_roles", [])?;
+    conn.execute("drop table if exists roles", [])?;
+    conn.execute("drop table if exists posts", [])?;
+    conn.execute("drop table if exists roles", [])?;
+    conn.execute("drop table if exists sessions", [])?;
+    conn.execute("drop table if exists users", [])?;
 
     conn.execute(
         "create table users (
@@ -45,7 +51,7 @@ fn generate_tables(conn: &Connection) {
                 salt text not null
          )",
         [],
-    );
+    )?;
 
     conn.execute(
         "create table roles (
@@ -53,7 +59,7 @@ fn generate_tables(conn: &Connection) {
                 name text not null
          )",
         [],
-    );
+    )?;
 
     conn.execute(
         "create table posts (
@@ -63,7 +69,7 @@ fn generate_tables(conn: &Connection) {
                 posted_time text not null
          )",
         [],
-    );
+    )?;
 
     conn.execute(
         "create table users_roles (
@@ -72,33 +78,37 @@ fn generate_tables(conn: &Connection) {
         PRIMARY KEY (username, role_id)
         )",
         [],
-    );
+    )?;
 
     conn.execute(
     "create table sessions (
           id integer primary key AUTOINCREMENT,
           username text not null references users(username),
           token text not null
-    )", [],);
+    )", [],)?;
 
     // data
 
-    conn.execute("insert into roles (name) VALUES ('admin');", []);
-    conn.execute("insert into roles (name) VALUES ('moderator');", []);
-    conn.execute("insert into roles (name) VALUES ('user');", []);
-    conn.execute("insert into roles (name) VALUES ('banned');", []);
+    conn.execute("insert into roles (name) VALUES ('admin');", [])?;
+    conn.execute("insert into roles (name) VALUES ('moderator');", [])?;
+    conn.execute("insert into roles (name) VALUES ('user');", [])?;
+    conn.execute("insert into roles (name) VALUES ('banned');", [])?;
 
-    conn.execute("insert into users (username, hashedpw, salt) VALUES ('rat','c7c21c131c46c3e2725bb745de6768baf41ae0366110fc3645bd5bcc50145a3bea3f52323888fac36dbde6e964b1d0678c13116e1193d465bdcaa189d119cc9a', '319152662097124763509187784674982699619');", []);
+    let lab_rat = User::new("rat", "rat");
+    match lab_rat {
+        None => {}
+        Some(u) => {
+            u.add_role("admin")?;
+            u.add_role("banned")?;
+        }
+    }
+    conn.execute(
+        "INSERT INTO posts \
+        (author, content, posted_time) \
+        VALUES ('rat','aaaaa','2021-11-11 13:18:30')", [],
+    )?;
 
-    conn.execute(
-        "insert into users_roles (username, role_id) VALUES ('rat',1)",[],
-    );
-    conn.execute(
-        "insert into users_roles (username, role_id) VALUES ('rat',4)",[],
-    );
-    conn.execute(
-        "INSERT INTO posts (author, content, posted_time) VALUES ('a','rat','2021-11-11 13:18:30')", [],
-    );
+    Ok(true)
 }
 
 #[allow(clippy::unused_io_amount)]
