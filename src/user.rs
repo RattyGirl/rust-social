@@ -1,7 +1,8 @@
 use std::collections::HashMap;
-use rust_social::{make_view, Request, User};
+use rust_social::{make_view, User};
+use crate::{Request, Response};
 
-pub fn login_post(request: &Request) -> (String, String) {
+pub fn login_post(request: &Request) -> Response {
 
     let mut parameters_hashmap: HashMap<String, String> = HashMap::new();
 
@@ -23,41 +24,30 @@ pub fn login_post(request: &Request) -> (String, String) {
                 match User::login(username, password) {
                     Some(u) => {
                         let token = u.generate_token().unwrap_or_default();
-                        (
-                            "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()
-                                + token.as_str(),
-                            make_view!("homeredirect.html").to_string(),
-                        )
+                        Response::new().with_code(200)
+                            .with_header("Set-Cookie".to_string(), format!("token={}", token.as_str()))
+                            .with_body(make_view!("homeredirect.html").to_string()).clone()
                     }
                     None => {
-                        ("HTTP/1.1 200 OK".to_string(), "Unable to login user".to_string())
+                        Response::new().with_code(200).with_body("Unable to login user".to_string()).clone()
                     }
                 }
             }
             (_, _) => {
-                (
-                    "HTTP/1.1 400 BAD REQUEST".to_string(),
-                    "Invalid Parameters".to_string(),
-                )
+                Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
             }
         }
     } else {
-        (
-            "HTTP/1.1 400 BAD REQUEST".to_string(),
-            "Invalid Parameters".to_string(),
-        )
+        Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
     }
 
 }
 
-pub fn register_get(_request: &Request) -> (String, String) {
-    (
-        "HTTP/1.1 200 OK".to_string(),
-        make_view!("user/register.html").to_string(),
-    )
+pub fn register_get(_request: &Request) -> Response {
+    Response::new().with_code(200).with_body(make_view!("user/register.html").to_string()).clone()
 }
 
-pub fn register_post(request: &Request) -> (String, String) {
+pub fn register_post(request: &Request) -> Response {
     let mut parameters_hashmap: HashMap<String, String> = HashMap::new();
 
     if request.headers.get("Content-Type").unwrap_or(&String::new()).eq("application/x-www-form-urlencoded") {
@@ -78,37 +68,27 @@ pub fn register_post(request: &Request) -> (String, String) {
                 match User::new(username, password) {
                     Some(u) => {
                         let token = u.generate_token().unwrap_or_default();
-
-                        (
-                            "HTTP/1.1 200 OK\nSet-Cookie: token=".to_string()
-                                + token.as_str(),
-                            make_view!("homeredirect.html").to_string(),
-                        )
+                        Response::new().with_code(200)
+                            .with_header("Set-Cookie".to_string(), format!("token={}", token.as_str()))
+                            .with_body(make_view!("homeredirect.html").to_string()).clone()
                     }
                     None => {
-                        ("HTTP/1.1 200 OK".to_string(), "Unable to register user".to_string())
+                        Response::new().with_code(200).with_body("Unable to register user".to_string()).clone()
                     }
                 }
             }
             (_, _) => {
-                (
-                    "HTTP/1.1 400 BAD REQUEST".to_string(),
-                    "Invalid Parameters".to_string(),
-                )
+                Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
             }
         }
     } else {
-        (
-            "HTTP/1.1 400 BAD REQUEST".to_string(),
-            "Invalid Parameters".to_string(),
-        )
+        Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use rust_social::{Request, TYPE, DB_LOCATION};
-    use crate::user::{register_post};
+    use rust_social::DB_LOCATION;
     use rusqlite::Connection;
 
     fn setup() {

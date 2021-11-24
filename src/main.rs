@@ -2,9 +2,10 @@ use rusqlite::Connection;
 use std::io::prelude::*;
 use std::net::TcpListener;
 use std::net::TcpStream;
-use rust_social::{ThreadPool, create_request, TYPE, Request, DB_LOCATION, SERVER_ADDRESS};
-use rust_social::{make_view};
+use rust_social::{ThreadPool, DB_LOCATION, SERVER_ADDRESS, make_view};
+use crate::request::{Request, Response, TYPE};
 
+mod request;
 mod user;
 mod admin;
 mod posts;
@@ -107,29 +108,22 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.read(&mut buffer).unwrap();
 
-    let request_obj = match create_request(buffer) {
+    let request_obj = match Request::new(buffer) {
         None => {
-            rust_social::create_emp_req()
+            Request::create_emp_req()
         }
         Some(x) => {
             x
         }
     };
 
-    let (status_line, body) = get_response(&request_obj);
+    let response = get_response(&request_obj);
 
-    let response = format!(
-        "{}\r\nContent-Length: {}\r\n\r\n{}",
-        status_line,
-        body.len(),
-        body
-    );
-
-    stream.write_all(response.as_bytes()).unwrap();
+    stream.write_all(response.get_full().as_bytes()).unwrap();
     stream.flush().unwrap();
 }
 
-pub fn get_response(request_obj: &Request) -> (String, String) {
+pub fn get_response(request_obj: &Request) -> Response {
     match (request_obj.uri.to_ascii_lowercase().as_str(), request_obj.req_type) {
         ("/", TYPE::GET) => posts::home_get(request_obj),
         ("/login", TYPE::POST) => user::login_post(request_obj),
@@ -137,12 +131,11 @@ pub fn get_response(request_obj: &Request) -> (String, String) {
         ("/register", TYPE::POST) => user::register_post(request_obj),
         ("/register", TYPE::GET) => user::register_get(request_obj),
 
-        ("/post", TYPE::GET) => posts::post_get(request_obj),
         ("/post", TYPE::POST) => posts::post_post(request_obj),
 
         ("/admin", TYPE::GET) => admin::admin_get(request_obj),
 
 
-        (_,_) => ("HTTP/1.1 404 NOT FOUND".to_string(), make_view!("404.html").to_string()),
+        (_,_) => Response::new().with_code(404).with_body(make_view!("404.html").to_string()).clone(),
     }
 }

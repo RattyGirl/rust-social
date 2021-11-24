@@ -1,8 +1,6 @@
 mod view;
+mod request;
 
-use core::fmt;
-use std::collections::HashMap;
-use std::str::Split;
 use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -99,124 +97,17 @@ impl Worker {
     }
 }
 
-// HTTP REQUEST
-
-pub struct Request {
-    pub req_type: TYPE,
-    pub uri: String,
-    pub headers: HashMap<String, String>,
-    pub cookies: HashMap<String, String>,
-    pub parameters: HashMap<String, String>,
-    pub body: String,
-}
-
-#[derive(PartialEq, Copy, Clone)]
-pub enum TYPE {
-    GET,
-    POST,
-}
-
-pub fn create_emp_req() -> Request {
-    Request {
-        req_type: TYPE::GET,
-        uri: String::new(),
-        headers: Default::default(),
-        cookies: Default::default(),
-        parameters: Default::default(),
-        body: String::new()
-    }
-}
-
-pub fn create_request(buffer: [u8; 1024]) -> Option<Request> {
-    let mut request = String::new();
-
-    for c in buffer {
-        if c == 0 {
-            continue;
-        }
-        request.push(char::from(c));
-    }
-    if request.contains("HTTP/1.1") {
-        let body_splitheader: Vec<&str> = request.split("\r\n\r\n").collect();
-        let headers = body_splitheader[0];
-        let body = if body_splitheader.len() == 2 { body_splitheader[1] } else { "" };
-        let header_lines: Split<&str> = headers.split("\r\n");
-
-
-        let mut req_obj = Request {
-            req_type: TYPE::GET,
-            uri: String::new(),
-            headers: HashMap::new(),
-            cookies: HashMap::new(),
-            parameters: HashMap::new(),
-            body: String::new(),
-        };
-        // read headers
-        for (counter, line) in header_lines.into_iter().enumerate() {
-            if counter == 0 {
-                //     status line
-                let status_line: Vec<&str> = line.split(' ').collect();
-                req_obj.req_type = match status_line[0] {
-                    "GET" => TYPE::GET,
-                    "POST" => TYPE::POST,
-                    _ => TYPE::GET,
-                };
-                // uri with parametesr
-                let uristuff: Vec<&str> = status_line[1].split('?').collect();
-                req_obj.uri = uristuff[0].to_string();
-                if uristuff.len() > 1 {
-                    {
-                        //     parameters
-                        let parameters: Vec<&str> = uristuff[1].split('&').collect();
-                        for parameter in parameters {
-                            if !parameter.is_empty() {
-                                let vec: Vec<&str> = parameter.split('=').collect();
-                                if vec.len() == 2 {
-                                    req_obj.parameters.insert(vec[0].to_string(), vec[1].to_string());
-                                } else {
-                                    req_obj.parameters.insert(vec[0].to_string(), String::new());
-                                }
-                            }
-                        }
-                    }
-                }
-            } else {
-                let line: Vec<&str> = line.split(": ").collect();
-                if line[0].eq("Cookie") {
-                    let cookies: Vec<&str> = line[1].split("; ").collect();
-                    for cookie in cookies {
-                        let cookie: Vec<&str> = cookie.split('=').collect();
-                        req_obj
-                            .cookies
-                            .insert(cookie[0].to_string(), cookie[1].to_string());
-                    }
-                } else {
-                    req_obj
-                        .headers
-                        .insert(line[0].to_string(), line[1].to_string());
-                }
-            }
-        }
-
-        req_obj.body = body.to_string();
-
-
-        Some(req_obj)
-    } else {
-        None
-    }
-}
-
-impl fmt::Display for Request {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self)
-    }
-}
-
 // models
 
 pub struct User {
     pub username: String,
+}
+
+pub struct Post {
+    pub id: i64,
+    pub author: String,
+    pub content: String,
+    pub posted_time: String,
 }
 
 impl User {
@@ -354,11 +245,4 @@ impl User {
 
     }
 
-}
-
-pub struct Post {
-    pub id: i64,
-    pub author: String,
-    pub content: String,
-    pub posted_time: String,
 }
