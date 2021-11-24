@@ -22,7 +22,7 @@ struct Post {
 
 fn get_all_posts() -> String {
     let mut out: String = String::new();
-    let conn = Connection::open("rust-social.db").unwrap();
+    let conn = Connection::open(DB_LOCATION).unwrap();
 
     let mut stmt = conn.prepare("SELECT id, author, content, posted_time FROM posts ORDER BY id DESC").unwrap();
     let posts_iter = stmt.query_map([], |row| {
@@ -65,7 +65,7 @@ pub fn post_post(request: &Request) -> (String, String) {
                 // TODO XSS
                 match User::get_if_valid(request.cookies.get("token").unwrap_or(&String::new())) {
                     Some(user) => {
-                        let conn = Connection::open("rust-social.db").unwrap();
+                        let conn = Connection::open(DB_LOCATION).unwrap();
                         match conn.execute(
                             "INSERT INTO posts (author, content, posted_time) VALUES (?1, ?2, CURRENT_TIMESTAMP)",
                             rusqlite::params![user.username, v["text"].as_str().unwrap()],

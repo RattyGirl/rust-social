@@ -112,7 +112,7 @@ mod tests {
     use rusqlite::Connection;
 
     fn setup() {
-        let conn = Connection::open("rust-social.db").unwrap();
+        let conn = Connection::open(DB_LOCATION).unwrap();
         crate::generate_tables(&conn);
         conn.close().unwrap();
     }

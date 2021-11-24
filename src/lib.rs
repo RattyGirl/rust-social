@@ -11,6 +11,9 @@ use crypto::sha3::Sha3;
 use crypto::digest::Digest;
 use rusqlite::{Connection, params};
 
+const DB_LOCATION: &str = "rust-social.db";
+const SERVER_ADDRESS: &str = "127.0.0.1:7878";
+
 enum Message {
     NewJob(Job),
     Terminate,
@@ -228,7 +231,7 @@ impl User {
 
         let hashedpw = hasher.result_str();
 
-        let conn = Connection::open("rust-social.db").unwrap();
+        let conn = Connection::open(DB_LOCATION).unwrap();
         match conn.execute(
             "INSERT INTO users (username, hashedpw, salt) VALUES (?1, ?2, ?3)",
             rusqlite::params![username, hashedpw, salt],
@@ -258,7 +261,7 @@ impl User {
             salt: String
         }
 
-        let conn = Connection::open("rust-social.db").unwrap();
+        let conn = Connection::open(DB_LOCATION).unwrap();
         match conn.query_row("SELECT * FROM users WHERE username = ?1",
             params![username],
             |row| Ok(UserRow {
@@ -292,7 +295,7 @@ impl User {
 
     pub fn generate_token(&self) -> Option<String> {
         let session_token: String = rand::random::<u128>().to_string();
-        let conn = Connection::open("rust-social.db").unwrap();
+        let conn = Connection::open(DB_LOCATION).unwrap();
         match conn.execute(
             "INSERT INTO sessions (username, token) VALUES (?1, ?2)",
             rusqlite::params![self.username, session_token],
@@ -313,7 +316,7 @@ impl User {
 
     pub fn get_if_valid(token: &str) -> Option<Self> {
         // TODO check time
-        let conn = Connection::open("rust-social.db").unwrap();
+        let conn = Connection::open(DB_LOCATION).unwrap();
         let row: Result<String, rusqlite::Error> = conn.query_row(
             "SELECT * FROM sessions where token = ?1",
             rusqlite::params![token],
@@ -333,7 +336,7 @@ impl User {
     }
 
     pub fn does_user_have_role(&self, role: String) -> bool {
-        let conn = Connection::open("rust-social.db").unwrap();
+        let conn = Connection::open(DB_LOCATION).unwrap();
 
         let x = conn
             .prepare(
