@@ -136,6 +136,6 @@ pub fn get_response(request_obj: &Request) -> Response {
         ("/admin", TYPE::GET) => admin::admin_get(request_obj),
 
 
-        (_,_) => Response::new().with_code(404).with_body(make_view!("404.html").to_string()).clone(),
+        (_,_) => Response::default().with_code(404).with_body(make_view!("404.social").to_string()).clone(),
     }
 }

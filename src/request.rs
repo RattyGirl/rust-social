@@ -1,6 +1,9 @@
+#![allow(dead_code, unused_variables)]
+
 use std::collections::HashMap;
 use std::fmt;
 use std::str::Split;
+
 
 pub struct Request {
     pub req_type: TYPE,
@@ -123,13 +126,6 @@ pub struct Response {
 }
 
 impl Response {
-    pub fn new() -> Self {
-        Response {
-            status_code: None,
-            body: "".to_string(),
-            headers: HashMap::new()
-        }
-    }
 
     pub fn with_code(&mut self, code: i32) -> &mut Response {
         self.status_code = Some(code);
@@ -164,9 +160,19 @@ impl Response {
 impl Clone for Response {
     fn clone(&self) -> Self {
         Response {
-            status_code: self.status_code.clone(),
+            status_code: self.status_code,
             body: self.body.clone(),
             headers: self.headers.clone()
+        }
+    }
+}
+
+impl Default for Response {
+    fn default() -> Self {
+        Response {
+            status_code: None,
+            body: "".to_string(),
+            headers: HashMap::new()
         }
     }
 }

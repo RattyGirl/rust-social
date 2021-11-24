@@ -24,27 +24,27 @@ pub fn login_post(request: &Request) -> Response {
                 match User::login(username, password) {
                     Some(u) => {
                         let token = u.generate_token().unwrap_or_default();
-                        Response::new().with_code(200)
+                        Response::default().with_code(200)
                             .with_header("Set-Cookie".to_string(), format!("token={}", token.as_str()))
-                            .with_body(make_view!("homeredirect.html").to_string()).clone()
+                            .with_body(make_view!("homeredirect.social").to_string()).clone()
                     }
                     None => {
-                        Response::new().with_code(200).with_body("Unable to login user".to_string()).clone()
+                        Response::default().with_code(200).with_body("Unable to login user".to_string()).clone()
                     }
                 }
             }
             (_, _) => {
-                Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
+                Response::default().with_code(400).with_body("Invalid Parameters".to_string()).clone()
             }
         }
     } else {
-        Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
+        Response::default().with_code(400).with_body("Invalid Parameters".to_string()).clone()
     }
 
 }
 
 pub fn register_get(_request: &Request) -> Response {
-    Response::new().with_code(200).with_body(make_view!("user/register.html").to_string()).clone()
+    Response::default().with_code(200).with_body(make_view!("user/register.social").to_string()).clone()
 }
 
 pub fn register_post(request: &Request) -> Response {
@@ -68,21 +68,21 @@ pub fn register_post(request: &Request) -> Response {
                 match User::new(username, password) {
                     Some(u) => {
                         let token = u.generate_token().unwrap_or_default();
-                        Response::new().with_code(200)
+                        Response::default().with_code(200)
                             .with_header("Set-Cookie".to_string(), format!("token={}", token.as_str()))
-                            .with_body(make_view!("homeredirect.html").to_string()).clone()
+                            .with_body(make_view!("homeredirect.social").to_string()).clone()
                     }
                     None => {
-                        Response::new().with_code(200).with_body("Unable to register user".to_string()).clone()
+                        Response::default().with_code(200).with_body("Unable to register user".to_string()).clone()
                     }
                 }
             }
             (_, _) => {
-                Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
+                Response::default().with_code(400).with_body("Invalid Parameters".to_string()).clone()
             }
         }
     } else {
-        Response::new().with_code(400).with_body("Invalid Parameters".to_string()).clone()
+        Response::default().with_code(400).with_body("Invalid Parameters".to_string()).clone()
     }
 }
 

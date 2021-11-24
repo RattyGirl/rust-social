@@ -18,10 +18,10 @@ macro_rules! make_view {
 mod tests {
     #[test]
     fn test() {
-        assert_eq!("{x}\n{y}\n{z}", make_view!("testpage.html"));
-        assert_eq!("oo\n{y}\n{z}", make_view!("testpage.html",, ("{x}", "oo")));
-        assert_eq!("oo\naaa\n{z}", make_view!("testpage.html",, ("{x}", "oo"),("{y}", "aaa")));
-        assert_eq!("oo\naaa\nuwu", make_view!("testpage.html",, ("{x}", "oo"),("{y}", "aaa"),("{z}", "uwu")));
-        assert_eq!("{x}\naaa\nuwu", make_view!("testpage.html",, ("{y}", "aaa"),("{z}", "uwu")));
+        assert_eq!("{x}\n{y}\n{z}", make_view!("testpage.social"));
+        assert_eq!("oo\n{y}\n{z}", make_view!("testpage.social",, ("{x}", "oo")));
+        assert_eq!("oo\naaa\n{z}", make_view!("testpage.social",, ("{x}", "oo"),("{y}", "aaa")));
+        assert_eq!("oo\naaa\nuwu", make_view!("testpage.social",, ("{x}", "oo"),("{y}", "aaa"),("{z}", "uwu")));
+        assert_eq!("{x}\naaa\nuwu", make_view!("testpage.social",, ("{y}", "aaa"),("{z}", "uwu")));
     }
 }

@@ -4,8 +4,8 @@ use crate::{Request, Response};
 
 pub fn home_get(_request: &Request) -> Response {
     let all_posts = get_all_posts();
-    Response::new().with_code(200).with_body(
-        make_view!("home.html",,
+    Response::default().with_code(200).with_body(
+        make_view!("home.social",,
         ("{posts}", all_posts.as_str())
         )).clone()
 }
@@ -36,7 +36,7 @@ fn get_all_posts() -> String {
     for post in posts_iter {
         match post {
             Ok(p) => {
-                out.push_str(make_view!("post.html").replace("{username}", &p.author)
+                out.push_str(make_view!("post.social").replace("{username}", &p.author)
                     .replace("{content}", &p.content)
                     .replace("{time}", &p.time).as_str());
             }
@@ -63,26 +63,26 @@ pub fn post_post(request: &Request) -> Response {
                             rusqlite::params![user.username, v["text"].as_str().unwrap()],
                         ) {
                             Ok(_) => {
-                                Response::new().with_code(200).with_body(make_view!("homeredirect.html").to_string()).clone()
+                                Response::default().with_code(200).with_body(make_view!("homeredirect.social").to_string()).clone()
                             },
                             Err(e) => {
                                 println!("An error occurred making a post: {}", e);
-                                Response::new().with_code(200).with_body(make_view!("postalert.html",,("{role}", "danger"),
+                                Response::default().with_code(200).with_body(make_view!("postalert.social",,("{role}", "danger"),
                                     ("{innertext}", "Invalid message"))).clone()
                             }
                         }
                     },
                     None => {
-                        Response::new().with_code(200).with_body(make_view!("postalert.html",,("{role}", "danger"),
+                        Response::default().with_code(200).with_body(make_view!("postalert.social",,("{role}", "danger"),
                             ("{innertext}", "Please login"))).clone()
                     }
                 }
             } else {
-                Response::new().with_code(200).with_body(make_view!("postalert.html",,("{role}", "danger"),
+                Response::default().with_code(200).with_body(make_view!("postalert.social",,("{role}", "danger"),
                             ("{innertext}", "Your message is empty"))).clone()
             }
         }
-        Err(_) => Response::new().with_code(200).with_body(make_view!("postalert.html",,("{role}", "danger"),
+        Err(_) => Response::default().with_code(200).with_body(make_view!("postalert.social",,("{role}", "danger"),
                             ("{innertext}", "Invalid Message"))).clone()
     }
 }
