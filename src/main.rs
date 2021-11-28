@@ -16,7 +16,7 @@ fn main() {
     match table_gen {
         Ok(_) => {}
         Err(e) => {
-            println!("Error found when generating tables: {}", e);
+            eprintln!("Error found when generating tables: {}", e);
         }
     }
     conn.close().unwrap();
@@ -102,6 +102,7 @@ fn generate_tables(conn: &Connection) -> Result<bool, rusqlite::Error> {
             u.add_role("banned")?;
         }
     }
+
     conn.execute(
         "INSERT INTO posts \
         (author, content, posted_time) \

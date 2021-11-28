@@ -1,22 +1,15 @@
-use rust_social::{make_view, User, DB_LOCATION};
+use rust_social::{make_view, User, Post, DB_LOCATION};
 use rusqlite::Connection;
 use crate::{Request, Response};
+use crate::user::get_view_header;
 
-pub fn home_get(_request: &Request) -> Response {
+pub fn home_get(request: &Request) -> Response {
     let all_posts = get_all_posts();
     Response::default().with_code(200).with_body(
         make_view!("home.social",,
-        ("{posts}", all_posts.as_str())
+        ("{posts}", all_posts.as_str()),
+        ("{header}", get_view_header(&request).as_str())
         )).clone()
-}
-
-#[derive(Debug)]
-#[allow(dead_code)]
-struct Post {
-    id: i32,
-    author: String,
-    content: String,
-    time: String
 }
 
 fn get_all_posts() -> String {
@@ -41,7 +34,7 @@ fn get_all_posts() -> String {
                     .replace("{time}", &p.time).as_str());
             }
             Err(e) => {
-                println!("Error with Post {:?}", e);
+                eprintln!("Error with Post {:?}", e);
             }
         }
     }
@@ -55,7 +48,7 @@ pub fn post_post(request: &Request) -> Response {
         Ok(v) => {
             if !v["text"].is_null() {
                 // TODO XSS
-                match User::get_if_valid(request.cookies.get("token").unwrap_or(&String::new())) {
+                match User::find_user(request.cookies.get("token").unwrap_or(&String::new())) {
                     Some(user) => {
                         let conn = Connection::open(DB_LOCATION).unwrap();
                         match conn.execute(
@@ -66,7 +59,7 @@ pub fn post_post(request: &Request) -> Response {
                                 Response::default().with_code(200).with_body(make_view!("homeredirect.social").to_string()).clone()
                             },
                             Err(e) => {
-                                println!("An error occurred making a post: {}", e);
+                                eprintln!("An error occurred making a post: {}", e);
                                 Response::default().with_code(200).with_body(make_view!("postalert.social",,("{role}", "danger"),
                                     ("{innertext}", "Invalid message"))).clone()
                             }

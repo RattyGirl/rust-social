@@ -1,0 +1,12 @@
+<li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        Login
+    </a>
+    <div class="dropdown-menu" style="padding: 15px; padding-bottom: 10px;">
+        <form class="form-horizontal" method="post" accept-charset="UTF-8" id="loginForm" action="/login">
+            <input class="form-control login" type="text" name="username" placeholder="Username.." id="usernameInput"><br>
+            <input class="form-control login" type="password" name="password" placeholder="Password.." id="passwordInput"><br>
+            <input class="btn btn-primary" type="submit" name="submit" value="Login">
+        </form>
+    </div>
+</li>

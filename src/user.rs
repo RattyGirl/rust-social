@@ -86,6 +86,23 @@ pub fn register_post(request: &Request) -> Response {
     }
 }
 
+pub fn get_view_header(request: &Request) -> String {
+    match User::find_user(request.cookies.get("token").unwrap_or(&String::new())) {
+        Some(u) => {
+            let login_area = make_view!("templates/currentuser.social",,(
+                    "{username}", u.username.as_str()));
+            make_view!("templates/header.social",,
+                ("{form}", login_area.as_str())
+            )
+        }
+        None => {
+            make_view!("templates/header.social",,
+                        ("{form}", make_view!("templates/loginform.social"))
+            )
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rust_social::DB_LOCATION;

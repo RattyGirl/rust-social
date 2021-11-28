@@ -9,34 +9,7 @@
 </head>
 <body>
 <div class="container">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Navbar</a>
-        <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Features</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Pricing</a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Login
-                    </a>
-                    <div class="dropdown-menu" style="padding: 15px; padding-bottom: 10px;">
-                        <form class="form-horizontal" method="post" accept-charset="UTF-8" id="loginForm" action="/login">
-                            <input class="form-control login" type="text" name="username" placeholder="Username.." id="usernameInput"><br>
-                            <input class="form-control login" type="password" name="password" placeholder="Password.." id="passwordInput"><br>
-                            <input class="btn btn-primary" type="submit" name="submit" value="Login">
-                        </form>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </nav>
+    {header}
 
 <!--    compose a post -->
     <h1>Make a post!</h1>

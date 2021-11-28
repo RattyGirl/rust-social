@@ -103,11 +103,16 @@ pub struct User {
     pub username: String,
 }
 
+#[derive(Debug)]
 pub struct Post {
-    pub id: i64,
+    pub id: i32,
     pub author: String,
     pub content: String,
-    pub posted_time: String,
+    pub time: String
+}
+
+impl Post {
+
 }
 
 impl User {
@@ -138,7 +143,7 @@ impl User {
                 }
             }
             Err(e) => {
-                println!("Error adding user {} to the database\nError: {}", username, e);
+                eprintln!("Error adding user {} to the database\nError: {}", username, e);
                 None
             }
         }
@@ -199,13 +204,13 @@ impl User {
                 }
             }
             Err(e) => {
-                println!("Error generating session for user {} to the database\nError: {}", self.username, e);
+                eprintln!("Error generating session for user {} to the database\nError: {}", self.username, e);
                 None
             }
         }
     }
 
-    pub fn get_if_valid(token: &str) -> Option<Self> {
+    pub fn find_user(token: &str) -> Option<Self> {
         // TODO check time
         let conn = Connection::open(DB_LOCATION).unwrap();
         let row: Result<String, rusqlite::Error> = conn.query_row(
@@ -220,7 +225,7 @@ impl User {
                 })
             }
             Err(e) => {
-                println!("Error finding user with token: {}",e);
+                eprintln!("Error finding user with token: {}",e);
                 None
             }
         }

@@ -12,8 +12,6 @@ macro_rules! make_view {
     }};
 }
 
-
-
 #[cfg(test)]
 mod tests {
     #[test]
